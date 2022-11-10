@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>drop down Click</title>
+</head>
+
+<style>
+    /* some styles for the demo */
+    *, *:before, *:after {
+        box-sizing: border-box;
+    }
+    html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        background-color: #202020;
+        color: #BBBBBB;
+    }
+    section {
+        margin: 0;
+        padding: 0;
+        height: 90vh;
+    }
+    section:nth-child(even) {
+        background-color: #505050;
+    }
+    section:nth-child(odd) {
+        background-color: #202020;
+    }
+    #heroe {
+        top: 0;
+        left: 0;
+    }
+    header, footer {
+        background-color: black;
+        text-align: center;
+    }
+    header {
+        height: 75px;
+    }
+    footer {
+        height: 50px;
+    }
+
+    header ul {
+        width: 100%;
+        height: 100%;
+        padding: 0 1em;
+        margin: 0;
+    }
+    header ul li {
+        list-style: none;
+        display: inline;
+        align-self: center;
+        cursor: pointer;
+    }
+    header ul li:hover {
+        color: #FFFFFF;
+    }
+
+    /* *************** */
+    /* dropdown styles */
+    /* *************** */
+    .dropdown-click {
+        position: relative;
+        cursor: pointer;
+        z-index: 98;
+    }
+
+    .dropdown-content {
+        position: fixed;
+        top: -3000px;
+        opacity: 0;
+        min-width: fit-content;
+        z-index: 99;
+        margin: 0;
+        padding: 0;
+    }
+    .dropdown-content ul {
+        margin: 0;
+        padding: 0.5em 1em;
+        background-color: #EEEEEE;
+        text-align: center;
+    }
+    .dropdown-content li {
+        list-style: none;
+    }
+    .dropdown-content li a {
+        font-size: 1.5em;
+        line-height: 2em;
+    }
+    .dropdown-content li a:hover {
+        color: red;
+    }
+    .dropdown-content.right {
+        right: 0;
+    }
+    .dropdown-content.left {
+        left: 0;
+    }
+    .opacity-on {
+        opacity: 1;
+    }
+    .opacity-off {
+        opacity: 0;
+    }
+
+</style>
+
+<body>
+
+<section id="heroe">
+    <div style="text-align: center">
+        <br>
+        <br>
+        <br>
+        <p>scroll down to see it in action</p>
+        <p style="font-size: 2em">&#8659;</p>
+    </div>
+</section>
+
+<!-- that's the element to observe, sentinel Header, an empty element -->
+<div class="sentinelHeader"></div>
+
+<header id="header">
+    <ul style="display: flex;justify-content: space-between">
+        <li class="dropdown-click" data-dropdown="ddc1">dropdown</li>
+        <li>std.menu</li>
+        <li class="dropdown-click" data-dropdown="ddc2">dropdown</li>
+        <li>std.menu</li>
+        <li>std.menu</li>
+        <li class="dropdown-click" data-dropdown="ddc3">dropdown</li>
+    </ul>
+</header>
+
+<section id="section1">
+    <div style="display: flex;justify-content: center;align-items: center;width: 100%;height: 100%">
+        section 1
+    </div>
+</section>
+
+<section id="section2">
+    <div style="display: flex;justify-content: center;align-items: center;width: 100%;height: 100%">
+        section 1
+    </div>
+</section>
+
+<section id="section3">
+    <div style="display: flex;justify-content: center;align-items: center;width: 100%;height: 100%">
+        section 1
+    </div>
+</section>
+
+<footer>
+    <div style="text-align: center">footer</div>
+</footer>
+
+<div id="ddc1" class="dropdown-content opacity-off">
+    <ul>
+        <li><a href="#section1">menu 1 section 1</a></li>
+        <li><a href="#section2">menu 1 section 2</a></li>
+        <li><a href="#section3">menu 1 section 3</a></li>
+    </ul>
+</div>
+<div id="ddc2" class="dropdown-content dpc2 opacity-off">
+    <ul>
+        <li><a href="#section1">menu 2 section 1</a></li>
+        <li><a href="#section2">menu 2 section 2</a></li>
+        <li><a href="#section3">menu 2 section 3</a></li>
+    </ul>
+</div>
+<div id="ddc3" class="dropdown-content dpc3 opacity-off">
+    <ul>
+        <li><a href="#section1">menu 3 section 1</a></li>
+        <li><a href="#section2">menu 3 section 2</a></li>
+        <li><a href="#section3">menu 3 section 3</a></li>
+    </ul>
+</div>
+
+<script>
+
+    /* ========== dropdown click ========== */
+    const clickDropDown = () => {
+        let els_dropdown = document.querySelectorAll('.dropdown-click');
+        els_dropdown.forEach((e) => e.addEventListener('click', function (e) {
+            e.stopImmediatePropagation();
+            closeAllDropDown();
+
+            const el_event = e.target;
+            //console.log(el_event.dataset.dropdown);
+            const el_event_rect = el_event.getBoundingClientRect();
+
+            const el_ddc = document.querySelector('#' + el_event.dataset.dropdown);
+            const el_ddc_rect = el_ddc.getBoundingClientRect();
+            let el_ddc_top;
+            el_ddc.style.transition = '';
+
+            console.log(window.innerHeight);
+            console.log(el_event_rect.top + el_event_rect.height + el_ddc_rect.height);
+            let diff = (el_event_rect.top + el_event_rect.height + el_ddc_rect.height) - window.innerHeight;
+            if (diff < 0) {
+                el_ddc_top = el_event_rect.top + el_event_rect.height;
+                el_ddc.style.top = (el_ddc_top - el_ddc_rect.height) + 'px';
+            } else {
+                el_ddc_top = el_event_rect.top - el_ddc_rect.height;
+                el_ddc.style.top = (el_ddc_top + el_ddc_rect.height) + 'px';
+            }
+            console.log('el_ddc_top: ' + el_ddc_top);
+
+            console.log(window.innerWidth);
+            console.log(el_event_rect.left + el_ddc_rect.width);
+            diff = (el_event_rect.left + el_ddc_rect.width) - window.innerWidth;
+            if (diff < 0) {
+                el_ddc.style.left = el_event_rect.left  + 'px';
+            } else {
+                el_ddc.style.left = el_event_rect.right - el_ddc_rect.width  + 'px';
+            }
+
+            setTimeout(function () {
+                el_ddc.style.transition = '.3s ease-in-out';
+                el_ddc.style.top = el_ddc_top + 'px';
+                el_ddc.style.opacity = '1';
+            }, 200)
+        }));
+    }
+    window.addEventListener('load', clickDropDown);
+
+    /* ========== if scroll close all dropdown ========== */
+    const closeAllDropDown = () => {
+        let els_dropContent = document.querySelectorAll('.dropdown-content');
+        els_dropContent.forEach(e => {
+            e.style.transition = '';
+            e.style.opacity = '0';
+            e.style.top = '-3000px';
+        });
+    }
+    window.addEventListener('load', closeAllDropDown);
+    document.addEventListener("scroll", closeAllDropDown);
+
+</script>
+</body>
+</html>
