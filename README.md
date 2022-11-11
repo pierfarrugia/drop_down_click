@@ -1,11 +1,15 @@
-# Header Fixed with IntersectionObserver
-### Javascript IntersectionObserver to make a Header fixed ###
+# dropdown click
 
 
 
-Classical way is to use CSS “sticky” to fix header on top of screen. Main pro: it’s only a css (plus you have to add some positioning relative, absolute...). That’s working well in general, sometimes not so... Also beside sticky, you don’t do anything else.
+Classical way is to use CSS “sticky” to fix header on top of screen. 
 
-Another solution is to use window.scroll and to toggle fixed position on the header relative to the scrollY position. That works too but as lot of posts are saying , a scroll position listener is not so good. For a so small thing to do, your browser is always listenning the scroll.
+Main pro: it’s only a css (plus you have to add some positioning relative, absolute...). That’s working well in general, sometimes you encounter problems: overflow hidden, event not working, position...
+
+Why using javascript? 
+
+Here it's a click (not onHover), so you will have javascript to respond the user click. The idea is to add some javascript to have a bullet proof dropdown working in all situations.
+
 
 Intersection Observer API concept is very well explained here
 
