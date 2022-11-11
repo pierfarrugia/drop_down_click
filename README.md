@@ -23,6 +23,7 @@ Here it's a click (not onHover), so you already have javascript to respond the u
 
 [See it in action full screen](https://aonecommunication.ch/content/intersection_observer_header_fixed/io_header_01.html)
 
+[See it in action full screen: anim version](https://aonecommunication.ch/content/drop_down_click/drop_down_click_anim.html)
 
 
 ---
