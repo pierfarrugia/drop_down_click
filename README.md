@@ -15,6 +15,8 @@ Here it's a click (not onHover), so you already have javascript to respond the u
 
 
 ---
+*use ctrl-click to open new window*
+
 [Test it on CodePen with animation](https://codepen.io/pierfarrugia/pen/abKJgqw)
 
 ![alt text](https://aonecommunication.ch/content/intersection_observer_header_fixed/headerFixed.webp)
