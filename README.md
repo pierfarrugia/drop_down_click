@@ -4,24 +4,18 @@
 
 Classical way is to use CSS “sticky” to fix header on top of screen. 
 
-Main pro: it’s only a css (plus you have to add some positioning relative, absolute...). That’s working well in general, sometimes you encounter problems: overflow hidden, event not working, position...
+Main pro: it’s only a css (with properties positioning relative, absolute...). 
 
-Why using javascript? 
+That’s working well in general. Sometimes you encounter problems: event not working (and not solved with overflow not hidden), position...
 
-Here it's a click (not onHover), so you will have javascript to respond the user click. The idea is to add some javascript to have a bullet proof dropdown working in all situations.
+**Why using javascript?** 
 
+Here it's a click (not onHover), so you already have javascript to respond the user click. The idea is to add some javascript lines to have a bullet proof dropdown working in all situations.
 
-Intersection Observer API concept is very well explained here
-
-https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
-
-If you search, you'll find lot of posts explaining Intersection Observer (lot of them are copy of this one!). 
-
-Intersection Observer gives a callback when the element observed intersect (in and out), that’s it: no continuous listener while scrolling, low resource, and easy.
 
 
 ---
-[Test it on CodePen](https://codepen.io/pierfarrugia/pen/mdLOGBY)
+[Test it on CodePen with animation](https://codepen.io/pierfarrugia/pen/abKJgqw)
 
 ![alt text](https://aonecommunication.ch/content/intersection_observer_header_fixed/headerFixed.webp)
 
@@ -34,110 +28,281 @@ Intersection Observer gives a callback when the element observed intersect (in a
 ---
 ## HTML 
 
-Very simple HTML structure:
+First part of HTML is for the demo purpose to have a header with a menu, and some sections.
+The element to fire the event must have:
+- dropdown-click class to fire the event
+- data-dropdown="XXX", XXX is the name of the dropdown linked with this click
+```html
+    <li class="dropdown-click" data-dropdown="XXX">dropdown</li>
+```
 
-- first section heroe
 
-- header
+Second part have 3 different dropwowns defined.
 
-- 2 sections (to have something to scroll)
+```html
+<!-- class dropdown-content mandatory --> 
+<!-- unic ID mandatory same as data-dropdown from the associated click -->
+<div id="XXX" class="dropdown-content">
+<!-- whatever you want here -->
+    <ul>
+        <li><a href="#section1">menu 1 section 1</a></li>
+        <li><a href="#section2">menu 1 section 2</a></li>
+        <li><a href="#section3">menu 1 section 3</a></li>
+    </ul>
+</div>
+...
+```
 
-- and a footer
+Each dropdown has a class "dropdown-content": 
+- dropdown is a regular HTML div
+- position absolute
+- top -3000px
+- opacity 0
 
+This way, absolute at -3000px with opacity 0, the element still have a bounding rect to have its size. If we were using display none, we wouldn't have size: element is removed from rendering. And we need size to know where to render it when fired element is clicked.
+
+Content of dropdown can be amy html you want. For the demo, you have submenu but could be image, video, or whatever you want.
+
+You can add other dropdown to be fired on any HTML regular tag: button, image, icon...
 
 
 ---
 ## CSS
 
-- section (including heroe) have 100vh height (to have some scroll), plus odd, even background to visually see the difference
+First part of CSS is for the demo purpose to style header, sections...
 
-- header and footer black background, header 75px height, footer 50px
+Main part needed is the 2 styles in "dropdown styles":
 
+- dropdown-click: class for elements to fire the drop-down
+- dropdown-content: class for elements to drop-down
 
-Now we’ll add the HTML element to be observed by intersection observer. It’s just an empty element and it will sit just before header:
-
-```html
-<div class="sentinelHeader"></div>
-```
-
-We also have to add 2 CSS, “fixed-top” to fix the header, and “scrolled-offset”.
-
-Fixed-top is easy to understand, it’s to fix the header on top of screen.
 ```css
-.fixed-top {
-	position: fixed;
-	top: 0;
-	right: 0;
-	left: 0;
-}
+    .dropdown-click { /* class for elements to fire the drop-down, NEEDED */
+        position: relative;
+        cursor: pointer;
+        z-index: 98;
+    }
+
+    .dropdown-content { /* class for elements to drop-down, NEEDED */
+        position: absolute;
+        top: -3000px;
+        opacity: 0;
+        min-width: fit-content;
+        z-index: 99;
+        margin: 0;
+        padding: 0;
+    }
 ```
 
-Scrolled-offset is to add margin-top 75px (header height) to next element after header to have a smooth transition when the header is fixed. Body background color is same color as header background color to avoid a visual flash when offset is active. Now you can use another color to have a visual smooth transition.
-```css
-.scrolled-offset {
-	margin-top: 75px;
-}
-```
+Last part is styles for the submenu inside the dropdown content in the demo.
 
 
 ---
 ## Javascript
 
-We have to observe the sentinelHeader.
 ```javascript
-const initOberverHeader = () => {
-    observerHeader.observe(document.querySelector('.sentinelHeader'));
+    const clickDropDown = () => {
+    let els_dropdown = document.querySelectorAll('.dropdown-click');
+    // adding event listener on all elements with class dropdown-click
+    els_dropdown.forEach((e) => e.addEventListener('click', function (e) {
+        e.stopImmediatePropagation();
+        // closing all opened dropdowns, see function thereafter, needed as function for reusability with scroll
+        closeAllDropDown();
+
+        // el_event, element which fire the click and el_event_rect it's bounding rect
+        const el_event = e.target;
+        const el_event_rect = el_event.getBoundingClientRect();
+
+        // el_ddc, element with the ID of the attribute 'dropdown' from el_event and el_ddc_rect it's bounding rect
+        const el_ddc = document.querySelector('#' + el_event.dataset.dropdown);
+        const el_ddc_rect = el_ddc.getBoundingClientRect();
+
+        // calculation has to be made for the top, if header bottom of screen
+        let el_ddc_top;
+
+        // TOP: compare the bottom of clicked element PLUS its corresponding dropdown height with the window height to fire dropdown under or above
+        let diff = (el_event_rect.top + el_event_rect.height + el_ddc_rect.height) - window.innerHeight;
+        if (diff < 0) {
+            // if diff < 0, dropdown will be under header
+            el_ddc_top = el_event.offsetTop + el_event_rect.height;
+            el_ddc.style.top = (el_ddc_top - el_ddc_rect.height) + 'px';
+        } else {
+            // if diff > 0, dropdown will be above header
+            el_ddc_top = el_event.offsetTop - el_ddc_rect.height;
+            el_ddc.style.top = (el_ddc_top + el_ddc_rect.height) + 'px';
+        }
+
+        // LEFT: compare the left of clicked element PLUS its corresponding dropdown width with the window width
+        diff = (el_event_rect.left + el_ddc_rect.width) - window.innerWidth;
+        if (diff < 0) {
+            // if diff < 0, dropdown will be aligned left of click element
+            el_ddc.style.left = el_event_rect.left + 'px';
+        } else {
+            // if diff > 0, dropdown will be aligned right of click element
+            el_ddc.style.left = el_event_rect.right - el_ddc_rect.width + 'px';
+        }
+
+        // show dropdown
+        el_ddc.style.top = el_ddc_top + 'px';
+        el_ddc.style.opacity = '1';
+    }));
 }
+window.addEventListener('load', clickDropDown);
 ```
 
-We call function observerHeader with the element sentinelHeader.
+- first part: we select all dropdown clicks and attach a click event handler on it
+- for each, we define the element which fire the event and its bounding rect
+- from its data attribute dropwon, we select the element to show and it's bounding rect
 
-### Now the big part the observer function:
+Calculation:
+- top: to check if there is enough room under the click element to show the dropdown under otherwise on top (here we store in variable, that's for the anim version)
+- left: to check if there is enough room right of click element to show the dropdown right otherwise show it on left
+
+Last line we call this function on window load.
 
 ```javascript
-const observerHeader = new IntersectionObserver(function (entries, self) {
-let selectHeader = document.querySelector('#header');
-let nextElement = selectHeader.nextElementSibling;
-if (window.scrollY > 50) {
-	entries.forEach(entry => {
-		if (entry.isIntersecting) {
-			selectHeader.classList.remove('fixed-top');
-			nextElement.classList.remove('scrolled-offset');
-		} else {
-			selectHeader.classList.add('fixed-top');
-			nextElement.classList.add('scrolled-offset');
-		}
-	});
+    const closeAllDropDown = () => {
+        let els_dropContent = document.querySelectorAll('.dropdown-content');
+        els_dropContent.forEach(e => {
+            e.style.opacity = '0';
+            e.style.top = '-3000px';
+        });
+    }
+    window.addEventListener('load', closeAllDropDown);
+
+```
+Generic function to reset all dropdowns, called in the clicks event, on scroll, and if body clicked.
+
+
+
+
+```javascript
+    document.addEventListener('scroll', closeAllDropDown);
+```
+On scroll, all dropdowns are reset. You can add it or not. Nicer.
+
+
+```javascript
+    document.body.addEventListener('click', closeAllDropDown);
+```
+On body click, reset all dropdowns. If you stop propagation in click event in your website, a click arriving to body means it was done in empty space.
+
+If you have several things to reset, you could write it this way:
+```javascript
+    document.body.addEventListener('click', function () {
+        closeAllDropDown();
+        // something else
+        // another one
+        //...
+    });
+```
+
+## Anim dropdown
+
+What about animating dropdown show.
+
+In previous version we stored the dropdown top value (el_ddc_top) to use it at the end of the function.
+
+Just after we reset the transition:
+```javascript
+    el_ddc.style.transition = '';
+```
+
+In fact, we'll make the transition in 2 steps:
+- opacity at 0, no transition value, we position the dropdown (example: if enough space under the clicked element, dropdown first position on top of this element minus the height of the dropdown)
+- transition value, opacity 1, final dropdown position
+
+If we do the transition in 1 step, dropdown will come from its original position at -3000px, and you'll see it crossing the whole screen.
+
+The little trick is we have step 1 to be done before step 2 is done otherwise we'll have same visual effect as if it were at -3000px. Now it's just 2 values changed on an element with opacity at 0 so really not a lot of calculation. Instead of building an handler to check step one finished, just a small timeout is ok:
+Just after we reset the transition:
+```javascript
+    setTimeout(function () {
+        el_ddc.style.transition = '.3s ease-in-out';
+        el_ddc.style.top = el_ddc_top + 'px';
+        el_ddc.style.opacity = '1';
+}, 200)
+```
+Because we have reset transition before step1, we put it back for step 2. We also reset the transition in close all dropdowns.
+
+Final function for anim:
+```javascript
+    /* ========== dropdown click ========== */
+const clickDropDown = () => {
+    let els_dropdown = document.querySelectorAll('.dropdown-click');
+    // adding event listener on all elements with class dropdown-click
+    els_dropdown.forEach((e) => e.addEventListener('click', function (e) {
+        e.stopImmediatePropagation();
+        // closing all opened dropdowns, see function thereafter, needed as function for reusability with scroll
+        closeAllDropDown();
+
+        // el_event, element which fire the click and el_event_rect it's bounding rect
+        const el_event = e.target;
+        const el_event_rect = el_event.getBoundingClientRect();
+
+        // el_ddc, element with the ID of the attribute 'dropdown' from el_event and el_ddc_rect it's bounding rect
+        const el_ddc = document.querySelector('#' + el_event.dataset.dropdown);
+        const el_ddc_rect = el_ddc.getBoundingClientRect();
+
+        // calculation has to be made for the top, if header bottom of screen, needed as variable el_ddc_top
+        let el_ddc_top;
+        // reset transition, needed for first changes of value, otherwise coming from -3000!
+        el_ddc.style.transition = '';
+
+        // TOP: compare the bottom of clicked element PLUS its corresponding dropdown height with the window height to fire dropdown under or above
+        let diff = (el_event_rect.top + el_event_rect.height + el_ddc_rect.height) - window.innerHeight;
+        if (diff < 0) {
+            // if diff < 0, dropdown will be under header
+            el_ddc_top = el_event.offsetTop + el_event_rect.height;
+            el_ddc.style.top = (el_ddc_top - el_ddc_rect.height) + 'px';
+        } else {
+            // if diff > 0, dropdown will be above header
+            el_ddc_top = el_event.offsetTop - el_ddc_rect.height;
+            el_ddc.style.top = (el_ddc_top + el_ddc_rect.height) + 'px';
+        }
+
+        // LEFT: compare the left of clicked element PLUS its corresponding dropdown width with the window width
+        diff = (el_event_rect.left + el_ddc_rect.width) - window.innerWidth;
+        if (diff < 0) {
+            // if diff < 0, dropdown will be aligned left of click element
+            el_ddc.style.left = el_event_rect.left  + 'px';
+        } else {
+            // if diff > 0, dropdown will be aligned right of click element
+            el_ddc.style.left = el_event_rect.right - el_ddc_rect.width  + 'px';
+        }
+
+        // little timeout: time for previous value to be applied before opacity on
+        // little transition of only dropdown height otherwise transition arrives from -3000px
+        setTimeout(function () {
+            el_ddc.style.transition = '.3s ease-in-out';
+            el_ddc.style.top = el_ddc_top + 'px';
+            el_ddc.style.opacity = '1';
+        }, 200)
+    }));
 }
-}, { root: null, threshold: 0, rootMargin: '0px' });
+window.addEventListener('load', clickDropDown);
+
+/* ========== if scroll close all dropdown ========== */
+const closeAllDropDown = () => {
+    let els_dropContent = document.querySelectorAll('.dropdown-content');
+    els_dropContent.forEach(e => {
+        e.style.transition = '';
+        e.style.opacity = '0';
+        e.style.top = '-3000px';
+    });
+}
+window.addEventListener('load', closeAllDropDown);
+
+// on scroll close all dropdowns
+document.addEventListener('scroll', closeAllDropDown);
+// on click body close all dropdowns. Meaning event bubbling arrived to body, Other events has to stop propagation or not
+document.body.addEventListener('click', closeAllDropDown);
+
 ```
 
 
-1. **last part: intersection observer options**
-
-- 'root: null' is the standard, you don’t really need this line (null is viewport)
-
-- 'threshold: 0', meaning when the element is 0% visible, what we are checking. Standard here is 1, you need this line
-
-- 'rootMargin: '0px'', in fact default is ‘0px’, so you don’t really need this line
-
-2. going back to the function: we select the 2 elements needed, the Header and the next element, here "section 1"
-
-3. scrollY > 50, safe value! Strange behaviour you can encounter on mobile browser, and/or Chrome. Initial rendering in browser happens with its own user agent before your own css arrives. On mobile, nav bar can be top or down initially, in Chrome you have margin 8px. Intersect observer gives not intersecting if 0 so header is fixed initially. With this test it's working well.
-4. entries: loop through the entries (sentinelHeader)
-
-5. checking if entry is intersecting
-
-6. if intersecting (sentinelHeader in viewport), remove class fixed-top and scrolled-offset
-
-7. if not intersecting (sentinelHeader outside viewport), add class fixed-top and scrolled-offset
 
 
----
-Now we just have to call the function, for example when window is loading:
-```javascript
-window.addEventListener('load', initOberverHeader);
-```
 
 Thanks for reading
 
