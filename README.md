@@ -19,13 +19,15 @@ Here it's a click (not onHover), so you already have javascript to respond the u
 
 [Test it on CodePen with animation](https://codepen.io/pierfarrugia/pen/abKJgqw)
 
-![alt text](https://aonecommunication.ch/content/intersection_observer_header_fixed/headerFixed.webp)
+![alt text](https://aonecommunication.ch/content/drop_down_click/drop_down_click.webp)
 
-[Read this on HTML page](https://aonecommunication.ch/blog.html#intersection_observer_header_fixed)
+[Read this on HTML page](https://aonecommunication.ch/blog.html#drop_down_click)
 
-[See it in action full screen](https://aonecommunication.ch/content/intersection_observer_header_fixed/io_header_01.html)
+[See it in action full screen](https://aonecommunication.ch/content/drop_down_click/drop_down_click.html)
 
 [See it in action full screen: anim version](https://aonecommunication.ch/content/drop_down_click/drop_down_click_anim.html)
+
+[GitHub](https://github.com/pierfarrugia/drop_down_click)
 
 
 ---
